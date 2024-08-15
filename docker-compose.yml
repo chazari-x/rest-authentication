@@ -1,0 +1,29 @@
+version: '3'
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespw}
+    ports:
+      - "5432:5432"
+  server:
+    container_name: server
+    build: .
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      SERVER_ADDRESS: ${SERVER_ADDRESS:-:8080}
+      DATABASE_ADDRESS: ${DATABASE_ADDRESS:-postgres://postgres:postgrespw@postgres:5432/postgres?sslmode=disable}
+      SECRET_KEY: ${SECRET_KEY:-secret}
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.mail.ru}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_USERNAME: ${EMAIL_USERNAME:-example@mail.ru}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-password}
+    ports:
+      - ${SERVER_PORT:-8080}:${SERVER_PORT:-8080}
+    command: [ "/app/main", "server" ]

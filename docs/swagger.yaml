@@ -1,0 +1,124 @@
+definitions:
+  server.requestAuth:
+    properties:
+      guid:
+        type: string
+      password:
+        type: string
+    required:
+    - guid
+    - password
+    type: object
+  server.requestNewUser:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  server.responseError:
+    properties:
+      error:
+        type: string
+    type: object
+  server.responseNewUser:
+    properties:
+      guid:
+        type: string
+    type: object
+  server.responseTokens:
+    properties:
+      access:
+        type: string
+      refresh:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/auth:
+    post:
+      description: Аутентификация пользователя
+      parameters:
+      - description: Message content
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/server.requestAuth'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/server.responseTokens'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.responseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.responseError'
+      summary: Аутентификация
+  /api/refresh:
+    get:
+      description: Обновление токена доступа пользователя
+      parameters:
+      - description: Access token
+        in: header
+        name: Authorization-Access
+        required: true
+        type: string
+      - description: Refresh token
+        in: header
+        name: Authorization-Refresh
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/server.responseTokens'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/server.responseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.responseError'
+      summary: Обновление токена
+  /api/register:
+    post:
+      description: Зарегистрировать нового пользователя
+      parameters:
+      - description: Message content
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/server.requestNewUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/server.responseNewUser'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.responseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.responseError'
+      summary: Регистрация
+swagger: "2.0"
