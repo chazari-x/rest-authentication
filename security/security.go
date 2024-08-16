@@ -3,6 +3,7 @@ package security
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -80,7 +81,7 @@ func (s *Security) RefreshTokens(access, refresh, IP string) (string, string, er
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	if has, err := s.storage.HasRefreshToken(claims["uuid"].(string), s.createHash(refresh)); err != nil || !has {
+	if has, err := s.storage.HasRefreshToken(claims["uuid"].(string), s.createHash(string(refresh))); err != nil || !has {
 		return "", "", err
 	}
 
@@ -127,7 +128,7 @@ func (s *Security) generateRefreshToken(access string) (string, error) {
 	}
 
 	elements := strings.Split(signedToken, ".")
-	refresh := elements[len(elements)-1]
+	refresh := base64.StdEncoding.EncodeToString([]byte(elements[len(elements)-1]))
 
 	return refresh, nil
 }
@@ -166,7 +167,12 @@ func (s *Security) validateToken(signedToken string) (*jwt.Token, error) {
 }
 
 // ValidateRefresh validates a refresh token
-func (s *Security) ValidateRefresh(access, refresh string) bool {
+func (s *Security) ValidateRefresh(access, encodeRefresh string) bool {
+	decodeRefresh, err := base64.StdEncoding.DecodeString(encodeRefresh)
+	if err != nil {
+		return false
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 		"access": access,
 	})
@@ -179,7 +185,7 @@ func (s *Security) ValidateRefresh(access, refresh string) bool {
 	elements := strings.Split(signedToken, ".")
 	newRefresh := elements[len(elements)-1]
 
-	return newRefresh == refresh
+	return newRefresh == string(decodeRefresh)
 }
 
 // createHash creates a hash from a text
