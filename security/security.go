@@ -86,14 +86,16 @@ func (s *Security) RefreshTokens(access, refresh, IP string) (string, string, er
 	}
 
 	if claims["ip"].(string) != IP {
-		err = s.email.Send(
+		found, err := s.email.Send(
 			claims["guid"].(string),
 			"Warning - Account Security",
 			"WARNING: Your account has been accessed from a new IP address.",
 		)
 		if err != nil {
 			log.Error(err)
-			return "", "", err
+			if !found {
+				return "", "", err
+			}
 		}
 	}
 

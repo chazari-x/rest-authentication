@@ -32,14 +32,14 @@ func New(cfg config.Email, store *storage.Storage) *Email {
 }
 
 // Send sends an email
-func (e *Email) Send(GUID, subject, body string) error {
+func (e *Email) Send(GUID, subject, body string) (bool, error) {
 	email, err := e.storage.SelectUserEmailByGUID(GUID)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	m := mailer.NewMessage(subject, body)
 	m.SetTo([]string{email})
 
-	return e.sender.SendMail(m)
+	return true, e.sender.SendMail(m)
 }
