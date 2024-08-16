@@ -184,7 +184,7 @@ func (s *Server) validateAccessMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		_, err := s.security.ValidateAccess(r.Header.Get("Authorization-Access"))
+		err := s.security.ValidateAccess(r.Header.Get("Authorization-Access"))
 		if err != nil {
 			write(w, http.StatusForbidden, responseError{Error: http.StatusText(http.StatusForbidden)})
 			return

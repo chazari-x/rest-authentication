@@ -51,7 +51,7 @@ func TestSecurity_GenerateTokens(t *testing.T) {
 				t.Errorf("GenerateTokens() error = %v", err)
 				return
 			}
-			if _, err = s.ValidateAccess(access); err != nil {
+			if _, err = s.validateToken(access); err != nil {
 				t.Errorf("access token is invalid")
 			}
 			if !s.ValidateRefresh(access, refresh) {

@@ -69,7 +69,7 @@ func (s *Security) GenerateTokens(GUID, IP string) (string, string, error) {
 
 // RefreshTokens refreshes access and refresh tokens
 func (s *Security) RefreshTokens(access, refresh, IP string) (string, string, error) {
-	token, err := s.ValidateAccess(access)
+	token, err := s.validateToken(access)
 	if err != nil {
 		return "", "", err
 	}
@@ -133,8 +133,25 @@ func (s *Security) generateRefreshToken(access string) (string, error) {
 }
 
 // ValidateAccess validates an access token
-func (s *Security) ValidateAccess(access string) (*jwt.Token, error) {
-	token, err := jwt.Parse(access, func(token *jwt.Token) (interface{}, error) {
+func (s *Security) ValidateAccess(access string) error {
+	token, err := s.validateToken(access)
+	if err != nil {
+		return err
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	_, err = s.storage.HasUUIDToken(claims["uuid"].(string))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateToken validates a token
+func (s *Security) validateToken(signedToken string) (*jwt.Token, error) {
+	token, err := jwt.Parse(signedToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte(s.cfg.SecretKey), nil
 	})
 	if err != nil {
@@ -154,14 +171,15 @@ func (s *Security) ValidateRefresh(access, refresh string) bool {
 		"access": access,
 	})
 
-	newRefresh, err := token.SignedString([]byte(s.cfg.SecretKey))
+	signedToken, err := token.SignedString([]byte(s.cfg.SecretKey))
 	if err != nil {
 		return false
 	}
 
-	elements := strings.Split(newRefresh, ".")
+	elements := strings.Split(signedToken, ".")
+	newRefresh := elements[len(elements)-1]
 
-	return elements[len(elements)-1] == refresh
+	return newRefresh == refresh
 }
 
 // createHash creates a hash from a text
