@@ -81,7 +81,7 @@ func (s *Security) RefreshTokens(access, refresh, IP string) (string, string, er
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	if has, err := s.storage.HasRefreshToken(claims["uuid"].(string), s.createHash(string(refresh))); err != nil || !has {
+	if has, err := s.storage.HasRefreshToken(claims["uuid"].(string), s.createHash(refresh)); err != nil || !has {
 		return "", "", err
 	}
 
